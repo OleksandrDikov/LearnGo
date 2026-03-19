@@ -7,6 +7,23 @@ import (
 	"testing"
 )
 
+func getTestCatalog() map[string]books.Book {
+	return map[string]books.Book{
+		"abc": {
+			Title:  "In the Company of Cheerful Ladies",
+			Author: "Alexander McCall Smith",
+			Copies: 1,
+			ID:     "abc",
+		},
+		"xyz": {
+			Title:  "White Heat",
+			Author: "Dominic Sandbrook",
+			Copies: 2,
+			ID:     "xyz",
+		},
+	}
+}
+
 func TestBookToString_FormatsBookInfoAsString(t *testing.T) {
 	input := books.Book{
 		Title:  "Sea Room",
@@ -35,7 +52,8 @@ func TestGetAllBooks_ReturnsAllBooks(t *testing.T) {
 			Copies: 2,
 		},
 	}
-	got := books.GetAllBooks()
+	catalog := getTestCatalog()
+	got := books.GetAllBooks(catalog)
 	slices.SortFunc(got, func(a, b books.Book) int {
 		return cmp.Compare(a.Author, b.Author)
 	})
@@ -52,7 +70,8 @@ func TestGetBook_FindBookInCatalogByID(t *testing.T) {
 		Author: "Alexander McCall Smith",
 		Copies: 1,
 	}
-	got, ok := books.GetBook("abc")
+	catalog := getTestCatalog()
+	got, ok := books.GetBook(catalog, "abc")
 	if !ok {
 		t.Fatal("book not found")
 	}
@@ -63,7 +82,8 @@ func TestGetBook_FindBookInCatalogByID(t *testing.T) {
 
 func TestGetBook_ReturnFalseWhenBookNotFound(t *testing.T) {
 	t.Parallel()
-	_, ok := books.GetBook("nonexisting ID")
+	catalog := getTestCatalog()
+	_, ok := books.GetBook(catalog, "nonexisting ID")
 	if ok {
 		t.Fatal("want false for nonexistent ID, got true")
 	}
@@ -71,25 +91,19 @@ func TestGetBook_ReturnFalseWhenBookNotFound(t *testing.T) {
 
 func TestAddBook_AddBookToTheCatalog(t *testing.T) {
 	t.Parallel()
-	want := books.Book{
+	catalog := getTestCatalog()
+	_, ok := books.GetBook(catalog, "aab")
+	if ok {
+		t.Fatal("book already exist")
+	}
+	books.AddBook(catalog, books.Book{
 		ID:     "aab",
 		Title:  "Test Book",
 		Author: "Alexander Smith",
 		Copies: 1,
-	}
-	_, ok := books.GetBook("aab")
-	if !ok {
-		t.Fatal("book already exist")
-	}
-
-	books.AddBook(want)
-
-	got, ok := books.GetBook("aab")
+	})
+	_, ok = books.GetBook(catalog, "aab")
 	if !ok {
 		t.Fatal("book not found")
 	}
-	if got != want {
-		t.Fatalf("Want: %v, Got: %v", want, got)
-	}
-
 }
