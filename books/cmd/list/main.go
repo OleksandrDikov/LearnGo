@@ -3,6 +3,7 @@ package main
 import (
 	"books"
 	"fmt"
+	"maps"
 )
 
 func main() {
@@ -17,4 +18,8 @@ func main() {
 		fmt.Println(books.BookToString(book))
 	}
 
+	for book := range maps.Values(books.Catalog) {
+		fmt.Println(book)
+		fmt.Println(books.BookToString(book))
+	}
 }
